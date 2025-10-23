@@ -4,7 +4,7 @@ import { useState } from "react"
 import type { UserRole } from "@/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { User, Users, Eye, Shield, RotateCcw } from "lucide-react"
+import { Building2, Users, UserCircle, RotateCcw } from "lucide-react"
 import { ResetEnvironmentModal } from "@/components/reset-environment-modal"
 import { resetEnvironment } from "@/lib/storage"
 import { useToast } from "@/hooks/use-toast"
@@ -42,42 +42,33 @@ export function LoginPage({ onRoleSelect }: LoginPageProps) {
           <CardTitle className="text-3xl">WillReg Platform</CardTitle>
           <CardDescription>Select your role to continue</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-3 gap-4">
           <Button
             variant="outline"
             className="h-32 flex flex-col gap-2 bg-transparent"
-            onClick={() => onRoleSelect("primary-admin")}
-          >
-            <Shield className="h-8 w-8" />
-            <div className="font-semibold">Primary Admin</div>
-            <div className="text-xs text-muted-foreground">Full access</div>
-          </Button>
-          <Button
-            variant="outline"
-            className="h-32 flex flex-col gap-2 bg-transparent"
-            onClick={() => onRoleSelect("standard")}
-          >
-            <User className="h-8 w-8" />
-            <div className="font-semibold">Standard User</div>
-            <div className="text-xs text-muted-foreground">Register & search</div>
-          </Button>
-          <Button
-            variant="outline"
-            className="h-32 flex flex-col gap-2 bg-transparent"
-            onClick={() => onRoleSelect("view-only")}
-          >
-            <Eye className="h-8 w-8" />
-            <div className="font-semibold">View Only</div>
-            <div className="text-xs text-muted-foreground">Read access</div>
-          </Button>
-          <Button
-            variant="outline"
-            className="h-32 flex flex-col gap-2 bg-transparent"
-            onClick={() => onRoleSelect("admin-staff")}
+            onClick={() => onRoleSelect("admin")}
           >
             <Users className="h-8 w-8" />
-            <div className="font-semibold">Admin Staff</div>
+            <div className="font-semibold">Admin</div>
             <div className="text-xs text-muted-foreground">Backend processing</div>
+          </Button>
+          <Button
+            variant="outline"
+            className="h-32 flex flex-col gap-2 bg-transparent"
+            onClick={() => onRoleSelect("firm")}
+          >
+            <Building2 className="h-8 w-8" />
+            <div className="font-semibold">Firm User</div>
+            <div className="text-xs text-muted-foreground">Law firm access</div>
+          </Button>
+          <Button
+            variant="outline"
+            className="h-32 flex flex-col gap-2 bg-transparent"
+            onClick={() => onRoleSelect("individual")}
+          >
+            <UserCircle className="h-8 w-8" />
+            <div className="font-semibold">Individual</div>
+            <div className="text-xs text-muted-foreground">Consumer search</div>
           </Button>
         </CardContent>
       </Card>
