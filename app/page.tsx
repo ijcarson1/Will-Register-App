@@ -9,6 +9,7 @@ import { Sidebar } from "@/components/layout/sidebar"
 // Import all page components
 import { LoginPage } from "@/components/pages/login"
 import { DashboardPage } from "@/components/pages/dashboard"
+import { IndividualDashboard } from "@/components/pages/individual-dashboard"
 import { RegisterWillPage } from "@/components/pages/register-will"
 import { BulkUploadPage } from "@/components/pages/bulk-upload"
 import { SearchRequestPage } from "@/components/pages/search-request"
@@ -57,7 +58,7 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    if (currentUser?.userRole === "admin-staff") {
+    if (currentUser?.userRole === "admin") {
       const saved = sessionStorage.getItem("admin_selected_firm")
       if (saved) {
         try {
@@ -106,26 +107,58 @@ export default function Home() {
 
   const handleRoleSelect = (role: UserRole) => {
     const user: User = {
-      firmId: "FIRM001",
-      firmName: "Smith & Partners Solicitors",
-      sraNumber: "SRA123456",
+      id: "USER001",
+      accountType: role === "admin" ? "admin" : role === "individual" ? "individual" : "firm",
+      firstName: role === "admin" ? "Admin" : role === "individual" ? "John" : "Sarah",
+      lastName: role === "admin" ? "User" : role === "individual" ? "Smith" : "Johnson",
+      fullName: role === "admin" ? "Admin User" : role === "individual" ? "John Smith" : "Sarah Johnson",
+      email:
+        role === "admin"
+          ? "admin@willreg.co.uk"
+          : role === "individual"
+            ? "john.smith@gmail.com"
+            : "sarah.johnson@lawfirm.co.uk",
+      status: "active",
+      emailVerified: true,
+      passwordLastChanged: new Date().toISOString(),
+      requirePasswordChange: false,
+      twoFactorEnabled: false,
+      registeredAt: new Date().toISOString(),
+      searchCount: 0,
+      activeSearchCount: 0,
+      willCount: 0,
+      adminNotes: [],
+      flags: [],
       userRole: role,
-      userName: role === "admin-staff" ? "Admin User" : "Sarah Johnson",
-      email: role === "admin-staff" ? "admin@willreg.co.uk" : "sarah.johnson@lawfirm.co.uk",
+      firmId: role === "firm" ? "FIRM001" : undefined,
+      firmName: role === "firm" ? "Smith & Partners Solicitors" : undefined,
+      sraNumber: role === "firm" ? "SRA123456" : undefined,
+      isPrimaryAdmin: role === "firm" ? false : undefined,
     }
     setCurrentUser(user)
-    setCurrentPage(role === "admin-staff" ? "admin-dashboard" : "dashboard")
+    setCurrentPage(role === "admin" ? "admin-dashboard" : "dashboard")
   }
 
   const handleRoleChange = (role: UserRole) => {
     if (currentUser) {
+      // Determine if this should be a primary admin based on the role switcher selection
+      const isPrimaryAdmin = role === "firm" ? false : undefined
+
       setCurrentUser({
         ...currentUser,
         userRole: role,
-        userName: role === "admin-staff" ? "Admin User" : currentUser.userName,
-        email: role === "admin-staff" ? "admin@willreg.co.uk" : currentUser.email,
+        accountType: role === "admin" ? "admin" : role === "individual" ? "individual" : "firm",
+        fullName: role === "admin" ? "Admin User" : role === "individual" ? "John Smith" : currentUser.fullName,
+        firstName: role === "admin" ? "Admin" : role === "individual" ? "John" : currentUser.firstName,
+        lastName: role === "admin" ? "User" : role === "individual" ? "Smith" : currentUser.lastName,
+        email:
+          role === "admin" ? "admin@willreg.co.uk" : role === "individual" ? "john.smith@gmail.com" : currentUser.email,
+        firmId: role === "firm" ? currentUser.firmId || "FIRM001" : undefined,
+        firmName: role === "firm" ? currentUser.firmName || "Smith & Partners Solicitors" : undefined,
+        sraNumber: role === "firm" ? currentUser.sraNumber || "SRA123456" : undefined,
+        isPrimaryAdmin,
       })
-      setCurrentPage(role === "admin-staff" ? "admin-dashboard" : "dashboard")
+      setCurrentPage(role === "admin" ? "admin-dashboard" : "dashboard")
     }
   }
 
@@ -144,7 +177,7 @@ export default function Home() {
     console.log("[v0] Navigate to:", page, "Current user role:", currentUser?.userRole)
     console.log("[v0] Selected firm for upload:", selectedFirmForUpload)
 
-    if (page === "register-will" && currentUser?.userRole === "admin-staff") {
+    if (page === "register-will" && currentUser?.userRole === "admin") {
       if (!selectedFirmForUpload) {
         console.log("[v0] No firm selected, showing firm selection")
         setShowFirmSelection(true)
@@ -203,10 +236,15 @@ export default function Home() {
           onNavigate={handleNavigate}
         />
         <main className="flex-1 overflow-y-auto p-6">
-          {currentPage === "dashboard" && <DashboardPage currentUser={currentUser} onNavigate={handleNavigate} />}
+          {currentPage === "dashboard" &&
+            (currentUser.userRole === "individual" ? (
+              <IndividualDashboard currentUser={currentUser} onNavigate={handleNavigate} />
+            ) : (
+              <DashboardPage currentUser={currentUser} onNavigate={handleNavigate} />
+            ))}
           {currentPage === "register-will" && (
             <>
-              {currentUser.userRole === "admin-staff" && showFirmSelection ? (
+              {currentUser.userRole === "admin" && showFirmSelection ? (
                 <FirmSelectionPage
                   currentUser={currentUser}
                   onFirmSelected={handleFirmSelected}

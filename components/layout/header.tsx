@@ -4,8 +4,14 @@ import { useState, useEffect } from "react"
 import type { User } from "@/types"
 import { RoleSwitcher } from "@/components/role-switcher"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { RotateCcw, ChevronDown, Loader2 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { RotateCcw, ChevronDown, Loader2, UserIcon, Settings, CreditCard, LogOut } from "lucide-react"
 import { ResetEnvironmentModal } from "@/components/reset-environment-modal"
 import { resetEnvironment } from "@/lib/storage"
 import { useToast } from "@/hooks/use-toast"
@@ -67,11 +73,11 @@ export function Header({ currentUser, onRoleChange, onLogout, onNavigate }: Head
     <header className="border-b bg-background p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">{currentUser.userName}</h1>
+          <h1 className="text-xl font-semibold">{currentUser.fullName}</h1>
           <p className="text-sm text-muted-foreground">{currentUser.email}</p>
         </div>
         <div className="flex items-center gap-2">
-          {activeJobsCount > 0 && (
+          {activeJobsCount > 0 && currentUser.userRole !== "individual" && (
             <DropdownMenu open={showJobsDropdown} onOpenChange={setShowJobsDropdown}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2 relative bg-transparent">
@@ -129,7 +135,34 @@ export function Header({ currentUser, onRoleChange, onLogout, onNavigate }: Head
             </DropdownMenu>
           )}
 
-          <RoleSwitcher currentUser={currentUser} onRoleChange={onRoleChange} />
+          {currentUser.userRole === "individual" ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+                  <UserIcon className="h-4 w-4" />
+                  {currentUser.firstName}
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onNavigate?.("account-details")}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Account Details
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onNavigate?.("billing")}>
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Billing
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={onLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <RoleSwitcher currentUser={currentUser} onRoleChange={onRoleChange} />
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

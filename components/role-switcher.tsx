@@ -12,16 +12,29 @@ interface RoleSwitcherProps {
 }
 
 const roleLabels = {
-  "primary-admin": "Primary Admin",
-  standard: "Standard User",
-  "view-only": "View Only",
-  "admin-staff": "Admin Staff",
+  admin: "Admin",
+  firm: "Firm User",
+  individual: "Individual",
 }
 
 export function RoleSwitcher({ currentUser, onRoleChange }: RoleSwitcherProps) {
+  const getRoleDisplay = () => {
+    if (currentUser.userRole === "firm" && currentUser.isPrimaryAdmin) {
+      return (
+        <div className="flex items-center gap-1">
+          <span>{roleLabels[currentUser.userRole]}</span>
+          <Badge variant="default" className="text-xs">
+            Primary Admin
+          </Badge>
+        </div>
+      )
+    }
+    return roleLabels[currentUser.userRole]
+  }
+
   return (
     <div className="flex items-center gap-2">
-      <Badge variant="secondary">{roleLabels[currentUser.userRole]}</Badge>
+      <Badge variant="secondary">{getRoleDisplay()}</Badge>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm">
@@ -29,10 +42,17 @@ export function RoleSwitcher({ currentUser, onRoleChange }: RoleSwitcherProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onRoleChange("primary-admin")}>Primary Admin</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onRoleChange("standard")}>Standard User</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onRoleChange("view-only")}>View Only</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onRoleChange("admin-staff")}>Admin Staff</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onRoleChange("admin")}>Admin</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onRoleChange("firm")}>Firm User (Standard)</DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              // Set isPrimaryAdmin flag when switching to firm primary admin
+              onRoleChange("firm")
+            }}
+          >
+            Firm User (Primary Admin)
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onRoleChange("individual")}>Individual</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components
 import { SortableTableHead } from "@/components/ui/sortable-table-head"
 import { formatDate } from "@/lib/utils"
 import { useSortableTable } from "@/lib/table-sort"
-import { Search } from "lucide-react"
+import { Search, Plus } from "lucide-react"
 
 interface ViewSearchesPageProps {
   currentUser: User
@@ -60,9 +60,24 @@ export function ViewSearchesPage({ currentUser, onNavigate }: ViewSearchesPagePr
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">View Searches</h1>
-        <p className="text-muted-foreground">Track and manage all search requests</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">
+            {currentUser.userRole === "individual" ? "Your Searches" : "View Searches"}
+          </h1>
+          <p className="text-muted-foreground">
+            {currentUser.userRole === "individual"
+              ? "Track your will search requests"
+              : "Track and manage all search requests"}
+          </p>
+        </div>
+
+        {currentUser.userRole === "individual" && (
+          <Button onClick={() => onNavigate("search-request")}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Search
+          </Button>
+        )}
       </div>
 
       <Card>
