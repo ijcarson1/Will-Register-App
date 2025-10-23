@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Search, Clock } from "lucide-react"
 import { formatDate } from "@/lib/utils"
+import { IndividualUpgradeBanner } from "@/components/individual-upgrade-banner"
 
 interface IndividualDashboardProps {
   currentUser: User
@@ -42,6 +43,8 @@ export function IndividualDashboard({ currentUser, onNavigate }: IndividualDashb
         <h1 className="text-3xl font-bold">Welcome, {currentUser.firstName}</h1>
         <p className="text-muted-foreground">Search for a loved one's will</p>
       </div>
+
+      <IndividualUpgradeBanner />
 
       {/* Primary CTA */}
       <Card className="p-8 text-center border-2 border-primary/20 bg-gradient-to-br from-background to-muted/20">

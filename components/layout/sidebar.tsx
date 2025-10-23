@@ -15,6 +15,7 @@ import {
   FolderOpen,
   UserCog,
   Briefcase,
+  TrendingUp,
 } from "lucide-react"
 
 interface SidebarProps {
@@ -32,6 +33,7 @@ export function Sidebar({ currentUser, currentPage, onNavigate }: SidebarProps) 
     // Admin navigation (unchanged from admin-staff)
     navItems.push(
       { id: "admin-dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { id: "subscription-overview", label: "Subscriptions", icon: TrendingUp },
       { id: "search-queue", label: "Search Queue", icon: ClipboardList },
       { id: "firm-database", label: "Firm Database", icon: Database },
       { id: "user-management", label: "User Management", icon: UserCog },

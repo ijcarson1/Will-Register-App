@@ -14,6 +14,9 @@ export type ContactMethod = "email" | "phone"
 
 export type ContactStatus = "not-contacted" | "emailed" | "called" | "responded"
 
+export type SubscriptionPlan = "starter" | "professional" | "individual"
+export type SubscriptionStatus = "trial" | "active" | "expired" | "cancelled" | "past_due"
+
 export interface User {
   id: string
   accountType: "admin" | "firm" | "individual"
@@ -43,11 +46,17 @@ export interface User {
   positionInFirm?: string
   isPrimaryAdmin?: boolean // For firm users only - grants management capabilities
 
-  // Subscription (for firm accounts)
-  subscriptionStatus?: "trial" | "active" | "expired" | "cancelled"
+  subscriptionStatus?: SubscriptionStatus
+  subscriptionPlan?: SubscriptionPlan
   trialEndsAt?: string
-  subscriptionPlan?: "professional" | "individual"
+  subscriptionStartDate?: string
+  subscriptionEndDate?: string
   nextBillingDate?: string
+
+  // Credits (for firm users)
+  creditsRemaining?: number
+  creditsUsedThisMonth?: number
+  creditResetDate?: string
 
   // Activity
   registeredAt: string
@@ -288,13 +297,19 @@ export interface SolicitorFirm {
   registeredAt?: string
   registeredBy?: string // userId of primary admin who created firm
 
-  // Subscription
-  subscriptionStatus?: "trial" | "active" | "expired" | "cancelled"
+  subscriptionId?: string
+  subscriptionStatus?: SubscriptionStatus
+  subscriptionPlan?: SubscriptionPlan
   trialStartDate?: string
   trialEndDate?: string
   subscriptionStartDate?: string
   billingCycle?: "monthly" | "annual"
-  monthlyPrice?: number // 45
+  monthlyPrice?: number
+
+  // Credits
+  creditsRemaining?: number
+  creditsPerMonth?: number
+  creditResetDate?: string
 
   // Stats
   userCount?: number
@@ -365,4 +380,108 @@ export interface UploadJob {
     timestamp: string
     message: string
   }>
+}
+
+export interface Subscription {
+  id: string
+  firmId: string
+  firmName: string
+  plan: SubscriptionPlan
+  status: SubscriptionStatus
+
+  // Pricing
+  monthlyPrice: number // 45 for Starter, 95 for Professional
+  creditsPerMonth: number // 12 for Starter, 25 for Professional
+
+  // Dates
+  trialStartDate?: string
+  trialEndDate?: string
+  startDate: string
+  endDate?: string
+  nextBillingDate: string
+  cancelledAt?: string
+
+  // Usage
+  creditsRemaining: number
+  creditsUsedThisMonth: number
+  totalCreditsUsed: number
+  totalRevenue: number
+
+  // Metadata
+  createdAt: string
+  updatedAt: string
+  createdBy: string
+}
+
+export interface CreditTransaction {
+  id: string
+  firmId: string
+  firmName: string
+  userId: string
+  userName: string
+
+  type: "allocation" | "usage" | "refund" | "adjustment"
+  amount: number // positive for allocation/refund, negative for usage
+  balance: number // balance after transaction
+
+  // Context
+  searchId?: string
+  searchType?: SearchType
+  reason: string
+
+  // Metadata
+  createdAt: string
+  createdBy: string
+}
+
+export interface PaymentTransaction {
+  id: string
+  firmId?: string
+  userId: string
+  userName: string
+
+  type: "subscription" | "pay-as-you-go" | "refund"
+  amount: number
+  currency: "GBP"
+
+  // Payment details
+  paymentMethod: "card" | "invoice" | "bank_transfer"
+  status: "pending" | "completed" | "failed" | "refunded"
+
+  // Context
+  subscriptionId?: string
+  searchId?: string
+  description: string
+
+  // Metadata
+  createdAt: string
+  processedAt?: string
+}
+
+export interface FirmSubscriptionStats {
+  firmId: string
+  firmName: string
+  plan: SubscriptionPlan
+  status: SubscriptionStatus
+
+  // Financial
+  monthlyRevenue: number
+  totalRevenue: number
+  lifetimeValue: number
+
+  // Usage
+  creditsAllocated: number
+  creditsUsed: number
+  creditsRemaining: number
+  utilizationRate: number // percentage
+
+  // Activity
+  searchesThisMonth: number
+  searchesTotal: number
+  activeUsers: number
+
+  // Dates
+  subscriptionStartDate: string
+  nextBillingDate: string
+  daysSinceStart: number
 }
