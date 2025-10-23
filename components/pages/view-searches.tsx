@@ -1,15 +1,19 @@
 "use client"
 
+import { TableHead } from "@/components/ui/table"
+
 import { useState } from "react"
-import type { User, SearchStatus } from "@/types"
+import type { User, SearchStatus, SearchRequest } from "@/types"
 import { getSearches } from "@/lib/storage"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table"
+import { SortableTableHead } from "@/components/ui/sortable-table-head"
 import { formatDate } from "@/lib/utils"
+import { useSortableTable } from "@/lib/table-sort"
 import { Search } from "lucide-react"
 
 interface ViewSearchesPageProps {
@@ -32,6 +36,8 @@ export function ViewSearchesPage({ currentUser, onNavigate }: ViewSearchesPagePr
 
     return matchesStatus && matchesQuery
   })
+
+  const { sortedData, sortConfig, requestSort } = useSortableTable<SearchRequest>(filteredSearches)
 
   const getStatusColor = (status: SearchStatus) => {
     const colors: Record<SearchStatus, string> = {
@@ -101,23 +107,35 @@ export function ViewSearchesPage({ currentUser, onNavigate }: ViewSearchesPagePr
 
       <Card>
         <CardHeader>
-          <CardTitle>Search Requests ({filteredSearches.length})</CardTitle>
+          <CardTitle>Search Requests ({sortedData.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Deceased Name</TableHead>
-                <TableHead>Case Reference</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Requested By</TableHead>
-                <TableHead>Date</TableHead>
+                <SortableTableHead column="deceasedName" sortConfig={sortConfig} onSort={requestSort}>
+                  Deceased Name
+                </SortableTableHead>
+                <SortableTableHead column="caseReference" sortConfig={sortConfig} onSort={requestSort}>
+                  Case Reference
+                </SortableTableHead>
+                <SortableTableHead column="searchType" sortConfig={sortConfig} onSort={requestSort}>
+                  Type
+                </SortableTableHead>
+                <SortableTableHead column="status" sortConfig={sortConfig} onSort={requestSort}>
+                  Status
+                </SortableTableHead>
+                <SortableTableHead column="requestedBy" sortConfig={sortConfig} onSort={requestSort}>
+                  Requested By
+                </SortableTableHead>
+                <SortableTableHead column="requestDate" sortConfig={sortConfig} onSort={requestSort}>
+                  Date
+                </SortableTableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredSearches.map((search) => (
+              {sortedData.map((search) => (
                 <TableRow key={search.id} className="cursor-pointer hover:bg-muted/50">
                   <TableCell className="font-medium">{search.deceasedName}</TableCell>
                   <TableCell>{search.caseReference}</TableCell>
@@ -142,7 +160,7 @@ export function ViewSearchesPage({ currentUser, onNavigate }: ViewSearchesPagePr
                   </TableCell>
                 </TableRow>
               ))}
-              {filteredSearches.length === 0 && (
+              {sortedData.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                     No searches found matching your filters

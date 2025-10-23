@@ -28,6 +28,8 @@ import { FirmSelectionPage } from "@/components/pages/firm-selection"
 import { ViewWillsPage } from "@/components/pages/view-wills"
 
 export default function Home() {
+  const [isInitializing, setIsInitializing] = useState(true)
+  const [initError, setInitError] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [currentPage, setCurrentPage] = useState<string>("login")
   const [selectedSearchId, setSelectedSearchId] = useState<string | null>(null)
@@ -42,8 +44,19 @@ export default function Home() {
   const [showFirmSelection, setShowFirmSelection] = useState(false)
 
   useEffect(() => {
-    initializeStorage()
+    console.log("[v0] App initializing...")
+    try {
+      initializeStorage()
+      console.log("[v0] Storage initialized successfully")
+      setIsInitializing(false)
+    } catch (error) {
+      console.error("[v0] Storage initialization failed:", error)
+      setInitError(error instanceof Error ? error.message : "Unknown error")
+      setIsInitializing(false)
+    }
+  }, [])
 
+  useEffect(() => {
     if (currentUser?.userRole === "admin-staff") {
       const saved = sessionStorage.getItem("admin_selected_firm")
       if (saved) {
@@ -53,11 +66,43 @@ export default function Home() {
           setUploadContext(context)
           setUploadNotes(notes)
         } catch (e) {
-          // Ignore parse errors
+          console.error("[v0] Failed to parse saved firm selection:", e)
         }
       }
     }
   }, [currentUser])
+
+  if (isInitializing) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Initializing WillReg...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (initError) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center max-w-md p-6">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Initialization Error</h1>
+          <p className="text-muted-foreground mb-4">{initError}</p>
+          <button
+            onClick={() => {
+              setInitError(null)
+              setIsInitializing(true)
+              window.location.reload()
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const handleRoleSelect = (role: UserRole) => {
     const user: User = {

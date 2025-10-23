@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge"
 import { Eye, ChevronLeft, ChevronRight, Download } from "lucide-react"
 import { format, isValid, parseISO } from "date-fns"
+import { SortableTableHead } from "@/components/ui/sortable-table-head"
+import { useSortableTable } from "@/lib/table-sort"
 
 interface ViewWillsPageProps {
   currentUser: User
@@ -32,7 +34,6 @@ export function ViewWillsPage({ currentUser, onNavigate }: ViewWillsPageProps) {
   const [firmFilter, setFirmFilter] = useState("all")
   const [dateFrom, setDateFrom] = useState("")
   const [dateTo, setDateTo] = useState("")
-  const [sortBy, setSortBy] = useState("newest")
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
@@ -47,7 +48,7 @@ export function ViewWillsPage({ currentUser, onNavigate }: ViewWillsPageProps) {
     return Array.from(uniqueFirms).sort()
   }, [wills])
 
-  // Filter and sort wills
+  // Filter wills
   const filteredWills = useMemo(() => {
     let filtered = [...wills]
 
@@ -73,28 +74,14 @@ export function ViewWillsPage({ currentUser, onNavigate }: ViewWillsPageProps) {
       filtered = filtered.filter((will) => new Date(will.registeredDate) <= new Date(dateTo))
     }
 
-    // Sort
-    switch (sortBy) {
-      case "newest":
-        filtered.sort((a, b) => new Date(b.registeredDate).getTime() - new Date(a.registeredDate).getTime())
-        break
-      case "oldest":
-        filtered.sort((a, b) => new Date(a.registeredDate).getTime() - new Date(b.registeredDate).getTime())
-        break
-      case "name-asc":
-        filtered.sort((a, b) => a.testatorName.localeCompare(b.testatorName))
-        break
-      case "name-desc":
-        filtered.sort((a, b) => b.testatorName.localeCompare(a.testatorName))
-        break
-    }
-
     return filtered
-  }, [wills, searchQuery, firmFilter, dateFrom, dateTo, sortBy])
+  }, [wills, searchQuery, firmFilter, dateFrom, dateTo])
 
-  // Pagination
-  const totalPages = Math.ceil(filteredWills.length / itemsPerPage)
-  const paginatedWills = filteredWills.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  const { sortedData: sortedWills, sortConfig, requestSort } = useSortableTable<WillRegistration>(filteredWills)
+
+  // Pagination - use sortedWills instead of filteredWills
+  const totalPages = Math.ceil(sortedWills.length / itemsPerPage)
+  const paginatedWills = sortedWills.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   const handleViewWill = (will: WillRegistration) => {
     setSelectedWill(will)
@@ -111,7 +98,7 @@ export function ViewWillsPage({ currentUser, onNavigate }: ViewWillsPageProps) {
       "Registered By",
       "Firm",
     ]
-    const rows = filteredWills.map((will) => [
+    const rows = sortedWills.map((will) => [
       will.testatorName,
       formatDate(will.dob, "dd/MM/yyyy"),
       formatDate(will.willDate, "dd/MM/yyyy"),
@@ -153,7 +140,7 @@ export function ViewWillsPage({ currentUser, onNavigate }: ViewWillsPageProps) {
         </div>
         <div className="rounded-lg border p-4">
           <p className="text-sm text-muted-foreground">Filtered Results</p>
-          <p className="text-2xl font-bold">{filteredWills.length.toLocaleString()}</p>
+          <p className="text-2xl font-bold">{sortedWills.length.toLocaleString()}</p>
         </div>
         <div className="rounded-lg border p-4">
           <p className="text-sm text-muted-foreground">Total Firms</p>
@@ -174,7 +161,7 @@ export function ViewWillsPage({ currentUser, onNavigate }: ViewWillsPageProps) {
       </div>
 
       {/* Filters */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-2">
           <Label>Search</Label>
           <Input
@@ -230,20 +217,6 @@ export function ViewWillsPage({ currentUser, onNavigate }: ViewWillsPageProps) {
             }}
           />
         </div>
-        <div className="space-y-2">
-          <Label>Sort By</Label>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest First</SelectItem>
-              <SelectItem value="oldest">Oldest First</SelectItem>
-              <SelectItem value="name-asc">Name A-Z</SelectItem>
-              <SelectItem value="name-desc">Name Z-A</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
       </div>
 
       {/* Table */}
@@ -252,13 +225,27 @@ export function ViewWillsPage({ currentUser, onNavigate }: ViewWillsPageProps) {
           <table className="w-full">
             <thead className="bg-muted/50">
               <tr>
-                <th className="p-3 text-left font-medium">Testator Name</th>
-                <th className="p-3 text-left font-medium">Date of Birth</th>
-                <th className="p-3 text-left font-medium">Will Date</th>
-                <th className="p-3 text-left font-medium">Solicitor Name</th>
-                <th className="p-3 text-left font-medium">Registration Date</th>
-                <th className="p-3 text-left font-medium">Registered By</th>
-                <th className="p-3 text-left font-medium">Firm</th>
+                <SortableTableHead column="testatorName" sortConfig={sortConfig} onSort={requestSort}>
+                  Testator Name
+                </SortableTableHead>
+                <SortableTableHead column="dob" sortConfig={sortConfig} onSort={requestSort}>
+                  Date of Birth
+                </SortableTableHead>
+                <SortableTableHead column="willDate" sortConfig={sortConfig} onSort={requestSort}>
+                  Will Date
+                </SortableTableHead>
+                <SortableTableHead column="solicitorName" sortConfig={sortConfig} onSort={requestSort}>
+                  Solicitor Name
+                </SortableTableHead>
+                <SortableTableHead column="registeredDate" sortConfig={sortConfig} onSort={requestSort}>
+                  Registration Date
+                </SortableTableHead>
+                <SortableTableHead column="registeredBy" sortConfig={sortConfig} onSort={requestSort}>
+                  Registered By
+                </SortableTableHead>
+                <SortableTableHead column="firmName" sortConfig={sortConfig} onSort={requestSort}>
+                  Firm
+                </SortableTableHead>
                 <th className="p-3 text-left font-medium">Actions</th>
               </tr>
             </thead>
@@ -305,7 +292,7 @@ export function ViewWillsPage({ currentUser, onNavigate }: ViewWillsPageProps) {
         </div>
 
         {/* Pagination */}
-        {filteredWills.length > 0 && (
+        {sortedWills.length > 0 && (
           <div className="flex items-center justify-between border-t p-4">
             <div className="flex items-center gap-2">
               <Label>Items per page:</Label>
@@ -327,8 +314,8 @@ export function ViewWillsPage({ currentUser, onNavigate }: ViewWillsPageProps) {
                 </SelectContent>
               </Select>
               <span className="text-sm text-muted-foreground">
-                {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, filteredWills.length)} of{" "}
-                {filteredWills.length} results
+                {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, sortedWills.length)} of{" "}
+                {sortedWills.length} results
               </span>
             </div>
             <div className="flex items-center gap-2">
