@@ -28,6 +28,7 @@ import { JobsPage } from "@/components/pages/jobs"
 import { FirmSelectionPage } from "@/components/pages/firm-selection"
 import { ViewWillsPage } from "@/components/pages/view-wills"
 import { AdminSubscriptionOverview } from "@/components/pages/admin-subscription-overview"
+import { AdminFirmManagement } from "@/components/admin-firm-management"
 
 export default function Home() {
   const [isInitializing, setIsInitializing] = useState(true)
@@ -283,6 +284,7 @@ export default function Home() {
           {currentPage === "admin-dashboard" && (
             <AdminDashboardPage currentUser={currentUser} onNavigate={handleNavigate} />
           )}
+          {currentPage === "firm-management" && <AdminFirmManagement currentUser={currentUser} />}
           {currentPage === "subscription-overview" && (
             <AdminSubscriptionOverview currentUser={currentUser} onNavigate={handleNavigate} />
           )}

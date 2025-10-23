@@ -429,6 +429,10 @@ export interface CreditTransaction {
   searchType?: SearchType
   reason: string
 
+  adminAdjustment?: boolean
+  adminId?: string
+  adminReason?: string
+
   // Metadata
   createdAt: string
   createdBy: string
@@ -484,4 +488,26 @@ export interface FirmSubscriptionStats {
   subscriptionStartDate: string
   nextBillingDate: string
   daysSinceStart: number
+}
+
+export interface AdminAction {
+  id: string
+  adminId: string
+  adminName: string
+  action:
+    | "credit_adjustment"
+    | "subscription_change"
+    | "refund"
+    | "trial_extension"
+    | "subscription_cancel"
+    | "subscription_reactivate"
+  targetUserId: string
+  targetUserName: string
+  targetFirmId?: string
+  targetFirmName?: string
+  details: Record<string, any>
+  reason: string
+  previousValue?: any
+  newValue?: any
+  createdAt: string
 }

@@ -1,4 +1,5 @@
-import type { Subscription, CreditTransaction, FirmSubscriptionStats, SubscriptionPlan } from "@/types"
+import type { Subscription, CreditTransaction, FirmSubscriptionStats, SubscriptionPlan, AdminAction } from "@/types"
+import { addDays, format } from "date-fns"
 
 // Mock subscription data
 const mockSubscriptions: Subscription[] = [
@@ -90,6 +91,8 @@ const mockCreditTransactions: CreditTransaction[] = [
     createdBy: "USER_001",
   },
 ]
+
+const mockAdminActions: AdminAction[] = []
 
 export function getSubscriptions(): Subscription[] {
   return mockSubscriptions
@@ -183,4 +186,227 @@ export function calculateCreditsNeeded(searchType: "basic" | "advanced"): number
 export function canAffordSearch(creditsRemaining: number, searchType: "basic" | "advanced"): boolean {
   const creditsNeeded = calculateCreditsNeeded(searchType)
   return creditsRemaining >= creditsNeeded
+}
+
+export function getAdminActions(): AdminAction[] {
+  return mockAdminActions
+}
+
+export function logAdminAction(action: Omit<AdminAction, "id" | "createdAt">): void {
+  const log: AdminAction = {
+    id: `AA_${String(mockAdminActions.length + 1).padStart(3, "0")}`,
+    createdAt: new Date().toISOString(),
+    ...action,
+  }
+  mockAdminActions.push(log)
+}
+
+export function adminChangeSubscriptionTier(
+  adminId: string,
+  adminName: string,
+  userId: string,
+  userName: string,
+  firmId: string,
+  firmName: string,
+  currentTier: SubscriptionPlan,
+  newTier: SubscriptionPlan,
+  reason: string,
+): void {
+  const subscription = mockSubscriptions.find((s) => s.firmId === firmId)
+
+  if (subscription) {
+    subscription.plan = newTier
+    subscription.updatedAt = new Date().toISOString()
+
+    // Adjust credits based on new tier
+    const planDetails = getPlanDetails(newTier)
+    subscription.creditsPerMonth = planDetails.credits
+    subscription.monthlyPrice = planDetails.price
+    subscription.creditsRemaining = planDetails.credits
+  }
+
+  logAdminAction({
+    adminId,
+    adminName,
+    action: "subscription_change",
+    targetUserId: userId,
+    targetUserName: userName,
+    targetFirmId: firmId,
+    targetFirmName: firmName,
+    details: {
+      previousTier: currentTier,
+      newTier,
+    },
+    reason,
+    previousValue: currentTier,
+    newValue: newTier,
+  })
+}
+
+export function adminAdjustCredits(
+  adminId: string,
+  adminName: string,
+  userId: string,
+  userName: string,
+  firmId: string,
+  firmName: string,
+  adjustmentType: "add" | "remove" | "set",
+  amount: number,
+  reason: string,
+  currentBalance: number,
+): number {
+  let newBalance = currentBalance
+
+  if (adjustmentType === "add") {
+    newBalance = currentBalance + amount
+  } else if (adjustmentType === "remove") {
+    newBalance = Math.max(0, currentBalance - amount)
+  } else {
+    newBalance = amount
+  }
+
+  const transaction: CreditTransaction = {
+    id: `CT_${String(mockCreditTransactions.length + 1).padStart(3, "0")}`,
+    firmId,
+    firmName,
+    userId,
+    userName,
+    type: "adjustment",
+    amount: newBalance - currentBalance,
+    balance: newBalance,
+    reason: `Admin adjustment: ${reason}`,
+    adminAdjustment: true,
+    adminId,
+    adminReason: reason,
+    createdAt: new Date().toISOString(),
+    createdBy: adminId,
+  }
+
+  mockCreditTransactions.push(transaction)
+
+  // Update subscription
+  const subscription = mockSubscriptions.find((s) => s.firmId === firmId)
+  if (subscription) {
+    subscription.creditsRemaining = newBalance
+    subscription.updatedAt = new Date().toISOString()
+  }
+
+  logAdminAction({
+    adminId,
+    adminName,
+    action: "credit_adjustment",
+    targetUserId: userId,
+    targetUserName: userName,
+    targetFirmId: firmId,
+    targetFirmName: firmName,
+    details: {
+      adjustmentType,
+      amount,
+      previousBalance: currentBalance,
+      newBalance,
+    },
+    reason,
+    previousValue: currentBalance.toString(),
+    newValue: newBalance.toString(),
+  })
+
+  return newBalance
+}
+
+export function adminExtendTrial(
+  adminId: string,
+  adminName: string,
+  userId: string,
+  userName: string,
+  firmId: string,
+  firmName: string,
+  days: number,
+  currentTrialEnd: string,
+  reason: string,
+): string {
+  const newTrialEnd = addDays(new Date(currentTrialEnd), days).toISOString()
+
+  const subscription = mockSubscriptions.find((s) => s.firmId === firmId)
+  if (subscription) {
+    subscription.trialEndDate = newTrialEnd
+    subscription.updatedAt = new Date().toISOString()
+  }
+
+  logAdminAction({
+    adminId,
+    adminName,
+    action: "trial_extension",
+    targetUserId: userId,
+    targetUserName: userName,
+    targetFirmId: firmId,
+    targetFirmName: firmName,
+    details: {
+      daysExtended: days,
+      previousEnd: currentTrialEnd,
+      newEnd: newTrialEnd,
+    },
+    reason,
+    previousValue: format(new Date(currentTrialEnd), "MMM dd, yyyy"),
+    newValue: format(new Date(newTrialEnd), "MMM dd, yyyy"),
+  })
+
+  return newTrialEnd
+}
+
+export function adminCancelSubscription(
+  adminId: string,
+  adminName: string,
+  userId: string,
+  userName: string,
+  firmId: string,
+  firmName: string,
+  reason: string,
+): void {
+  const subscription = mockSubscriptions.find((s) => s.firmId === firmId)
+  if (subscription) {
+    subscription.status = "cancelled"
+    subscription.cancelledAt = new Date().toISOString()
+    subscription.updatedAt = new Date().toISOString()
+  }
+
+  logAdminAction({
+    adminId,
+    adminName,
+    action: "subscription_cancel",
+    targetUserId: userId,
+    targetUserName: userName,
+    targetFirmId: firmId,
+    targetFirmName: firmName,
+    details: {},
+    reason,
+  })
+}
+
+export function adminReactivateSubscription(
+  adminId: string,
+  adminName: string,
+  userId: string,
+  userName: string,
+  firmId: string,
+  firmName: string,
+  reason: string,
+): void {
+  const subscription = mockSubscriptions.find((s) => s.firmId === firmId)
+  if (subscription) {
+    subscription.status = "active"
+    subscription.cancelledAt = undefined
+    subscription.updatedAt = new Date().toISOString()
+  }
+
+  logAdminAction({
+    adminId,
+    adminName,
+    action: "subscription_reactivate",
+    targetUserId: userId,
+    targetUserName: userName,
+    targetFirmId: firmId,
+    targetFirmName: firmName,
+    details: {},
+    reason,
+  })
 }

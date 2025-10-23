@@ -9,13 +9,14 @@ import {
   Search,
   List,
   Users,
-  CreditCard,
   Database,
   ClipboardList,
   FolderOpen,
   UserCog,
   Briefcase,
   TrendingUp,
+  Coins,
+  Building2,
 } from "lucide-react"
 
 interface SidebarProps {
@@ -33,6 +34,7 @@ export function Sidebar({ currentUser, currentPage, onNavigate }: SidebarProps) 
     // Admin navigation (unchanged from admin-staff)
     navItems.push(
       { id: "admin-dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { id: "firm-management", label: "Firm Management", icon: Building2 },
       { id: "subscription-overview", label: "Subscriptions", icon: TrendingUp },
       { id: "search-queue", label: "Search Queue", icon: ClipboardList },
       { id: "firm-database", label: "Firm Database", icon: Database },
@@ -49,14 +51,12 @@ export function Sidebar({ currentUser, currentPage, onNavigate }: SidebarProps) 
       { id: "view-searches", label: "View Searches", icon: List },
       { id: "manage-wills", label: "Manage Wills", icon: FolderOpen },
       { id: "jobs", label: "Jobs", icon: Briefcase },
+      { id: "billing", label: "Subscription", icon: Coins },
     )
 
-    // Add management options for primary admins
+    // Add management options for primary admins only
     if (currentUser.isPrimaryAdmin) {
-      navItems.push(
-        { id: "manage-users", label: "Manage Users", icon: Users },
-        { id: "billing", label: "Billing", icon: CreditCard },
-      )
+      navItems.push({ id: "manage-users", label: "Manage Users", icon: Users })
     }
   } else if (userRole === "individual") {
     // Individual user navigation (minimal)

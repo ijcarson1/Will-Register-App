@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
-import { TrendingUp, DollarSign, Users, ArrowUpRight, Coins } from "lucide-react"
+import { TrendingUp, DollarSign, Users, ArrowUpRight, Coins, ExternalLink } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 
 interface AdminSubscriptionOverviewProps {
@@ -47,6 +47,10 @@ export function AdminSubscriptionOverview({ currentUser, onNavigate }: AdminSubs
         {plan === "professional" ? "Professional" : "Starter"}
       </Badge>
     )
+  }
+
+  const handleViewFirmDetail = (firmId: string) => {
+    onNavigate("firm-detail", { firmId })
   }
 
   return (
@@ -153,7 +157,8 @@ export function AdminSubscriptionOverview({ currentUser, onNavigate }: AdminSubs
                       </TableCell>
                       <TableCell className="font-semibold">£{firm.monthlyRevenue}</TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleViewFirmDetail(firm.firmId)}>
+                          <ExternalLink className="mr-1 h-3 w-3" />
                           View Details
                         </Button>
                       </TableCell>
@@ -215,6 +220,15 @@ export function AdminSubscriptionOverview({ currentUser, onNavigate }: AdminSubs
                       <span className="font-medium">{firm.daysSinceStart} days</span>
                     </div>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full bg-transparent"
+                    onClick={() => handleViewFirmDetail(firm.firmId)}
+                  >
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    View Full Details
+                  </Button>
                 </CardContent>
               </Card>
             ))}
