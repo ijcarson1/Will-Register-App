@@ -1,4 +1,4 @@
-export type UserRole = "primary-admin" | "standard" | "view-only" | "admin-staff"
+export type UserRole = "admin" | "firm" | "individual"
 
 export type SearchStatus =
   | "received"
@@ -16,7 +16,7 @@ export type ContactStatus = "not-contacted" | "emailed" | "called" | "responded"
 
 export interface User {
   id: string
-  accountType: "firm" | "individual"
+  accountType: "admin" | "firm" | "individual"
 
   // Personal info
   firstName: string
@@ -41,6 +41,7 @@ export interface User {
   sraNumber?: string
   userRole?: UserRole // only if firm account
   positionInFirm?: string
+  isPrimaryAdmin?: boolean // For firm users only - grants management capabilities
 
   // Subscription (for firm accounts)
   subscriptionStatus?: "trial" | "active" | "expired" | "cancelled"

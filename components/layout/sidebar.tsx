@@ -26,10 +26,10 @@ interface SidebarProps {
 export function Sidebar({ currentUser, currentPage, onNavigate }: SidebarProps) {
   const { userRole } = currentUser
 
-  // Define navigation items based on role
   const navItems = []
 
-  if (userRole === "admin-staff") {
+  if (userRole === "admin") {
+    // Admin navigation (unchanged from admin-staff)
     navItems.push(
       { id: "admin-dashboard", label: "Dashboard", icon: LayoutDashboard },
       { id: "search-queue", label: "Search Queue", icon: ClipboardList },
@@ -38,38 +38,37 @@ export function Sidebar({ currentUser, currentPage, onNavigate }: SidebarProps) 
       { id: "register-will", label: "Register Will", icon: FileText },
       { id: "view-wills", label: "View Wills", icon: FolderOpen },
     )
-  } else {
-    navItems.push({ id: "dashboard", label: "Dashboard", icon: LayoutDashboard })
+  } else if (userRole === "firm") {
+    // Firm user navigation (consolidated from primary-admin, standard, view-only)
+    navItems.push(
+      { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { id: "register-will", label: "Register Will", icon: FileText },
+      { id: "search-request", label: "Search", icon: Search },
+      { id: "view-searches", label: "View Searches", icon: List },
+      { id: "manage-wills", label: "Manage Wills", icon: FolderOpen },
+      { id: "jobs", label: "Jobs", icon: Briefcase },
+    )
 
-    if (userRole === "primary-admin" || userRole === "standard") {
-      navItems.push(
-        { id: "register-will", label: "Register Will", icon: FileText },
-        { id: "search-request", label: "Search", icon: Search },
-      )
-    }
-
-    navItems.push({ id: "view-searches", label: "View Searches", icon: List })
-
-    if (userRole === "primary-admin" || userRole === "standard") {
-      navItems.push(
-        { id: "manage-wills", label: "Manage Wills", icon: FolderOpen },
-        { id: "jobs", label: "Jobs", icon: Briefcase },
-      )
-    }
-
-    if (userRole === "primary-admin") {
+    // Add management options for primary admins
+    if (currentUser.isPrimaryAdmin) {
       navItems.push(
         { id: "manage-users", label: "Manage Users", icon: Users },
         { id: "billing", label: "Billing", icon: CreditCard },
       )
     }
+  } else if (userRole === "individual") {
+    // Individual user navigation (minimal)
+    navItems.push(
+      { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { id: "view-searches", label: "View Searches", icon: List },
+    )
   }
 
   return (
     <div className="w-64 border-r bg-muted/40 p-6">
       <div className="mb-8">
         <h2 className="text-2xl font-bold">WillReg</h2>
-        <p className="text-sm text-muted-foreground">{currentUser.firmName}</p>
+        {userRole === "firm" && <p className="text-sm text-muted-foreground">{currentUser.firmName}</p>}
       </div>
       <nav className="space-y-2">
         {navItems.map((item) => {
